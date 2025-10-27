@@ -5,6 +5,7 @@
 
 .rrRule {
     fill: #d3f0ff;
+    fill: rgb(233 236 239) !important;
     stroke: #222222;
 }
 
@@ -16,6 +17,7 @@
 
 .rrLiteral {
     fill: #90d9ff;
+    fill: rgb(162 228 54) !important;
     stroke: #222222;
 }
 
@@ -27,6 +29,7 @@
 
 .rrSpecialSequence {
     fill: #e4f4ff;
+    fill: rgb(248 249 250) !important;
     stroke: #222222;
 }
 
