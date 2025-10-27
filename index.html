@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <title>EBNF2SyntaxDiagram</title>
+    <link rel="stylesheet" href="assets/css/vendor/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8">
+
+            <h1>EBNF in ein Syntaxiagramm umwandeln</h1>
+
+
+            <div id="form-wrapper">
+                <div class="mb-3">
+                    <label for="rulesInput" class="form-label">Grammatik in EBNF eingeben:</label>
+                    <textarea class="form-control" id="rules-input" name="rules-input" rows="3"></textarea>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-center">
+                    <button class="btn btn-primary" type="button" name="btn-generate" id="btn-generate" value="generate">Generieren</button>
+                    <button class="btn btn-danger" type="button" name="btn-clear-input" id="btn-clear-input">Alles löschen</button>
+                </div>
+            </div>
+
+
+            <div id="svg-output"></div>
+
+        </div>
+    </div>
+
+</div>
+
+    
+    <script src="assets/js/vendor/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="assets/js/vendor/rrdiagram/rrdiagram.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
