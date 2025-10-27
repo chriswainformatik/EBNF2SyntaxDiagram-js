@@ -5,3 +5,5 @@ Web application that transforms grammar rules of a context-free language in [EBN
 Diagram generation is made by [rrdiagram-js](https://github.com/Chrriis/rrdiagram-js).
 
 [Try it online](https://chriswainformatik.github.io/EBNF2SyntaxDiagram-js).
+
+![](screenshots/screenshot0.png "screenshot of the app with example code")
