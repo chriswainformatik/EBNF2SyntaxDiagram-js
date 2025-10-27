@@ -41,3 +41,9 @@
     font-family: Arial, Sans-serif;
     font-size: 10px;
 }
+
+/* --- Adjust placement of text --- */
+.rrLiteralText,
+.rrRuleText {
+    transform: translateY(4px);
+}
