@@ -1,3 +1,14 @@
+.dropdown-item:hover {
+    cursor: pointer !important;
+}
+
+#rules-input {
+    font-family: Consolas, monospace;
+    overflow-y: hidden;
+}
+
+/* ---------- Diagram style ---------- */
+
 .rrConnector {
     fill: none;
     stroke: #222222;
