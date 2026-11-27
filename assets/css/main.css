@@ -13,6 +13,21 @@
     filter: grayscale(1);
 }
 
+#svg-output .rule {
+    margin-top: 1rem;
+}
+
+#svg-output .rule-name {
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 0.25rem;
+}
+
+#svg-output.hide-rule-names .rule-name {
+    display: none;
+}
+
 .rrConnector {
     fill: none;
     stroke: #222222;

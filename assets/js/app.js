@@ -48,10 +48,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // export diagram as png
     document.getElementById('export-diagrams').addEventListener('click', async () => {
-        const svgs = [...document.querySelectorAll('#svg-output svg')];
-        if (!svgs.length) return;
+        const rules = [...document.querySelectorAll('#svg-output .rule')];
+        if (!rules.length) return;
 
-        const svg = svgs.length === 1 ? cloneWithInlineStyles(svgs[0]) : combineSvgs(svgs);
+        const showNames = document.getElementById('rule-names-checkbox').checked;
+        const items = rules.map(rule => ({
+            svg: rule.querySelector('svg'),
+            name: showNames ? rule.dataset.ruleName : null
+        }));
+        const svg = combineSvgs(items);
         if (!document.getElementById('colored-checkbox').checked)
             applyGrayscaleFilter(svg);
         try {
@@ -95,6 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
         svgOutput.classList.toggle("monochrome", !coloredCheckbox.checked);
     });
 
+    const ruleNamesCheckbox = document.getElementById("rule-names-checkbox");
+    bindControl(ruleNamesCheckbox, "change", () => {
+        svgOutput.classList.toggle("hide-rule-names", !ruleNamesCheckbox.checked);
+    });
+
     // insert example grammar rules
     document.getElementById("insert-example").addEventListener("click", function () {
         const rulesInput = document.getElementById("rules-input");
@@ -125,9 +135,19 @@ function generateDiagramsFromInput() {
         var rrDiagram = grammarToRRDiagram.convert(rules[i])
         var rrDiagramToSVG = new rrdiagram.ui.RRDiagramToSVG()
         var svg = rrDiagramToSVG.convert(rrDiagram)
-        result += '<br>' + svg
+        var name = escapeHtml(rules[i].getName())
+        result += `<div class="rule" data-rule-name="${name}"><div class="rule-name">${name}</div>${svg}</div>`
     }
     return result
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
 }
 
 function clearInput() {
@@ -168,11 +188,22 @@ function cloneWithInlineStyles(svg) {
     return clone;
 }
 
-// Stack several SVGs vertically into one
-function combineSvgs(svgs, gap = 20) {
+// Stack several SVGs vertically into one, each optionally preceded by a name label.
+// items: [{ svg: SVGElement, name: string | null }]
+function combineSvgs(items, gap = 20) {
     const NS = 'http://www.w3.org/2000/svg';
-    const width = Math.max(...svgs.map(s => +s.getAttribute('width')));
-    const height = svgs.reduce((h, s) => h + +s.getAttribute('height') + gap, -gap);
+    const labelHeight = 24;
+    const labelFont = 'bold 14px Arial, sans-serif';
+
+    // measure label widths so they are never clipped
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.font = labelFont;
+    const blockHeight = ({ svg, name }) => +svg.getAttribute('height') + (name ? labelHeight : 0);
+    const blockWidth = ({ svg, name }) =>
+        Math.max(+svg.getAttribute('width'), name ? Math.ceil(ctx.measureText(name).width) + 2 : 0);
+
+    const width = Math.max(...items.map(blockWidth));
+    const height = items.reduce((h, item) => h + blockHeight(item) + gap, -gap);
 
     const outer = document.createElementNS(NS, 'svg');
     outer.setAttribute('xmlns', NS);
@@ -182,13 +213,21 @@ function combineSvgs(svgs, gap = 20) {
     outer.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
     let y = 0;
-    svgs.forEach(svg => {
+    items.forEach(item => {
+        if (item.name) {
+            const label = document.createElementNS(NS, 'text');
+            label.setAttribute('x', 0);
+            label.setAttribute('y', y + 16);
+            label.setAttribute('style', 'font:' + labelFont + ';fill:#000000');
+            label.textContent = item.name;
+            outer.appendChild(label);
+        }
         const g = document.createElementNS(NS, 'g');
-        g.setAttribute('transform', `translate(0,${y})`);
-        const styled = cloneWithInlineStyles(svg);
+        g.setAttribute('transform', `translate(0,${y + (item.name ? labelHeight : 0)})`);
+        const styled = cloneWithInlineStyles(item.svg);
         while (styled.firstChild) g.appendChild(styled.firstChild);
         outer.appendChild(g);
-        y += +svg.getAttribute('height') + gap;
+        y += blockHeight(item) + gap;
     });
     return outer;
 }
