@@ -40,11 +40,11 @@
                             aria-haspopup="true" aria-expanded="false">Einstellungen</a>
                         <div class="dropdown-menu">
                             <div class="dropdown-item">
-                                <input class="form-check-input me-2" type="checkbox" id="colored-checkbox" checked>
+                                <input class="form-check-input me-2" type="checkbox" id="colored-checkbox" checked autocomplete="off">
                                 <label class="form-check-label" for="colored-checkbox">Ausgabe in Farbe</label>
                             </div>
                             <div class="dropdown-item">
-                                <input class="form-check-input me-2" type="checkbox" id="rule-names-checkbox" checked>
+                                <input class="form-check-input me-2" type="checkbox" id="rule-names-checkbox" checked autocomplete="off">
                                 <label class="form-check-label" for="rule-names-checkbox">Regelnamen anzeigen</label>
                             </div>
                             <!--
@@ -100,71 +100,8 @@
     <script src="assets/js/vendor/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js" defer></script>
     <script src="assets/js/vendor/rrdiagram/rrdiagram.js"></script>
     <script src="assets/js/app.js"></script>
-    <script>
-        document.getElementById("insert-example").addEventListener("click", function () {
-            const rulesInput = document.getElementById("rules-input");
-            rulesInput.value = 'coffee-order = size, " ", drink;\nsize = "small" | "medium" | "large";\ndrink = "coffee" | "tea";';
-            rulesInput.focus();
-        });
 
-        document.getElementById("export-diagrams").addEventListener("click", async function () {
-            const svgs = Array.from(document.querySelectorAll("#svg-output svg"));
-            if (!svgs.length) return;
-
-            const diagrams = svgs.map(svg => {
-                const bounds = svg.getBoundingClientRect();
-                const viewBox = svg.viewBox.baseVal;
-                return {
-                    svg,
-                    width: Math.ceil(bounds.width || Number(svg.getAttribute("width")) || viewBox.width),
-                    height: Math.ceil(bounds.height || Number(svg.getAttribute("height")) || viewBox.height)
-                };
-            });
-            if (diagrams.some(({ width, height }) => !width || !height)) return;
-
-            const margin = 20;
-            const canvas = document.createElement("canvas");
-            canvas.width = Math.max(...diagrams.map(item => item.width)) + margin * 2;
-            canvas.height = diagrams.reduce((total, item) => total + item.height, margin) + margin;
-            const context = canvas.getContext("2d");
-            context.fillStyle = "#fff";
-            context.fillRect(0, 0, canvas.width, canvas.height);
-
-            try {
-                let y = margin;
-                for (const { svg, width, height } of diagrams) {
-                    const clone = svg.cloneNode(true);
-                    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-                    clone.setAttribute("width", width);
-                    clone.setAttribute("height", height);
-                    const url = URL.createObjectURL(new Blob(
-                        [new XMLSerializer().serializeToString(clone)],
-                        { type: "image/svg+xml;charset=utf-8" }
-                    ));
-                    try {
-                        const image = new Image();
-                        await new Promise((resolve, reject) => {
-                            image.onload = resolve;
-                            image.onerror = reject;
-                            image.src = url;
-                        });
-                        context.drawImage(image, margin, y, width, height);
-                    } finally {
-                        URL.revokeObjectURL(url);
-                    }
-                    y += height;
-                }
-
-                const link = document.createElement("a");
-                link.download = "syntax-diagrams.png";
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-            } catch (error) {
-                console.error("Could not export diagrams as PNG", error);
-            }
-        });
-    </script>
-    <input type="file" id="file-input" hidden>
+    <input type="file" id="file-input" hidden autocomplete="off">
 
 </body>
 

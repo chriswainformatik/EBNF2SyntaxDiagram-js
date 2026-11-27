@@ -27,8 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     fileInput.addEventListener('change', async () => {
         const file = fileInput.files[0];
-        if (file) window.openedFileContent = await file.text();
-        document.getElementById("rules-input").value = window.openedFileContent
+        if (!file) return;
+        window.openedFileContent = await file.text();
+        document.getElementById("rules-input").value = window.openedFileContent;
+        // reset so selecting the same file again still fires a change event
+        fileInput.value = '';
     });
 
     // save file
@@ -49,6 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!svgs.length) return;
 
         const svg = svgs.length === 1 ? cloneWithInlineStyles(svgs[0]) : combineSvgs(svgs);
+        if (!document.getElementById('colored-checkbox').checked)
+            applyGrayscaleFilter(svg);
         try {
             const blob = await svgToPngBlob(svg, { scale: 2 });
             downloadBlob(blob, 'diagram.png');
@@ -63,10 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resizeRulesInput() {
         rulesInput.style.height = 'auto';
-        rulesInput.style.height = rulesInput.scrollHeight + 'px';
+        // scrollHeight excludes the borders, but Bootstrap uses box-sizing: border-box,
+        // so the borders have to be added back to avoid shrinking the textarea
+        const borders = rulesInput.offsetHeight - rulesInput.clientHeight;
+        rulesInput.style.height = (rulesInput.scrollHeight + borders) + 'px';
     }
 
-    rulesInput.addEventListener('input', resizeRulesInput);
+    bindControl(rulesInput, 'input', resizeRulesInput);
 
     // File loading assigns the textarea's value without firing an input event
     const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
@@ -81,13 +89,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const coloredCheckbox = document.getElementById("colored-checkbox");
+    const svgOutput = document.getElementById("svg-output");
+    bindControl(coloredCheckbox, "change", () => {
+        svgOutput.classList.toggle("monochrome", !coloredCheckbox.checked);
+    });
+
     // insert example grammar rules
     document.getElementById("insert-example").addEventListener("click", function () {
         const rulesInput = document.getElementById("rules-input");
         rulesInput.value = 'zahl = ziffer { ziffer } [ "," ziffer { ziffer } ];\nziffer = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";';
         rulesInput.focus();
     });
+
 })
+
+// Bind UI that is derived from a form control's state.
+// Browsers restore form state on reload and back/forward navigation without firing
+// input/change events, so `update` also runs immediately and on every pageshow
+// (which fires after restoration, including bfcache restores). `update` must be idempotent.
+function bindControl(el, eventName, update) {
+    el.addEventListener(eventName, update);
+    window.addEventListener('pageshow', update);
+    update();
+}
 
 function generateDiagramsFromInput() {
     var result = ''
@@ -134,7 +159,7 @@ function cloneWithInlineStyles(svg) {
     ];
     const srcNodes = svg.querySelectorAll('*');
     const dstNodes = clone.querySelectorAll('*');
-    
+
     srcNodes.forEach((src, i) => {
         const computed = getComputedStyle(src);
         const style = props.map(p => `${p}:${computed.getPropertyValue(p)}`).join(';');
@@ -208,4 +233,21 @@ function downloadBlob(blob, filename) {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function applyGrayscaleFilter(svgEl) {
+    const NS = 'http://www.w3.org/2000/svg';
+
+    const defs = document.createElementNS(NS, 'defs');
+    defs.innerHTML = `
+    <filter id="mono" color-interpolation-filters="sRGB">
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>`;
+
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('filter', 'url(#mono)');
+    while (svgEl.firstChild) g.appendChild(svgEl.firstChild);
+
+    svgEl.append(defs, g);
+    return svgEl;
 }

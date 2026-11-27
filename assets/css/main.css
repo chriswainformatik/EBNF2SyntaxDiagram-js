@@ -9,6 +9,10 @@
 
 /* ---------- Diagram style ---------- */
 
+#svg-output.monochrome svg {
+    filter: grayscale(1);
+}
+
 .rrConnector {
     fill: none;
     stroke: #222222;
